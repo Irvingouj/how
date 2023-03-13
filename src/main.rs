@@ -1,4 +1,4 @@
-use std::env;
+use std::{env, fs};
 use openai_api_rs::v1::chat_completion::{self, ChatCompletionRequest};
 use openai_api_rs::v1::api::Client;
 
@@ -16,8 +16,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>>{
     println!("full_line: {}", full_line);
 
 
-    let key = "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";
-    let client = Client::new(key.to_string());
+    let open_ai_key = fs::read_to_string("openai-key").unwrap();
+    let client = Client::new(open_ai_key);
     let req = ChatCompletionRequest {
             model: chat_completion::GPT3_5_TURBO.to_string(),
             messages: vec![chat_completion::ChatCompletionMessage {
