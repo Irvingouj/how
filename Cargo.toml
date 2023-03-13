@@ -7,3 +7,6 @@ edition = "2021"
 
 [dependencies]
 clap = { version = "4.1.8", features = ["derive"] }
+openai-api-rs = "0.1.4"
+tokio = "1.26.0"
+ureq = "2.6.2"
