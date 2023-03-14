@@ -19,7 +19,7 @@
                     "kind": "bin"
                 }
             },
-            "args": ["-v"],
+            "args": ["--","to","kill","process","at","port","8080","-c"],
             "cwd": "${workspaceFolder}"
         },
         {

@@ -12,23 +12,18 @@ async fn main() -> Result<(), Box<dyn std::error::Error>>{
     let mut full_line = String::new();
     let first = iter.next().unwrap_or_else(|| panic!("Please provide a command"));
     
-    match trim_question_word(first) {
-        Ok(word) => {
-            full_line.push_str(word.as_str());
-        }
-        Err(e) => {
-            panic!("Error: {}", e)
-        }
-    }
-
+    let word = trim_question_word(first).unwrap_or_else(|e| panic!("{}", e));
+    full_line.push_str(&word);
     for arg in iter {
         full_line.push_str(" ");
         full_line.push_str(arg);
     }
 
     let handler = CommandHandler::new();
+    dbg!(&full_line);
 
     if start_with_question_word_with_arg(&full_line) {
+        dbg!("start_with_question_word_with_arg");
         handler.handle_input_with_start_args(&full_line).await?;
         return Ok(());
     }
