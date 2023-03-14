@@ -30,10 +30,11 @@ async fn main() -> Result<(), Box<dyn std::error::Error>>{
 
     if start_with_question_word_with_arg(&full_line) {
         handler.handle_input_with_start_args(&full_line).await?;
+        return Ok(());
     }
-
-    if end_with_arg(&full_line) {
+    else if end_with_arg(&full_line) {
         handler.handle_input_with_end_args(&full_line).await?;
+        return Ok(());
     }
     
     handler.handle(&full_line).await?;
