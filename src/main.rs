@@ -1,34 +1,79 @@
-use std::{env, fs, path};
-use openai_api_rs::v1::chat_completion::{self, ChatCompletionRequest};
-use openai_api_rs::v1::api::Client;
+use std::{env};
+mod command_handler;
+use crate::command_handler::CommandHandler;
+use regex::Regex;
+
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>>{
     let args: Vec<_> = env::args().collect();
     let mut iter = args.iter();
 
-    let mut full_line = "how".to_owned();
-    iter.next();
+    let mut full_line = String::new();
+    let first = iter.next().unwrap_or_else(|| panic!("Please provide a command"));
+    
+    match trim_question_word(first) {
+        Ok(word) => {
+            full_line.push_str(word.as_str());
+        }
+        Err(e) => {
+            panic!("Error: {}", e)
+        }
+    }
     for arg in iter {
         full_line.push_str(" ");
         full_line.push_str(arg);
     }
-    println!("full_line: {}", full_line);
 
-    let dir = std::env::current_dir().unwrap().join(path::Path::new("openai_key"));
-    println!("dir: {:?}", dir);
-    let open_ai_key = fs::read_to_string(dir.to_str().unwrap()).unwrap();
-    let client = Client::new(open_ai_key);
-    let req = ChatCompletionRequest {
-            model: chat_completion::GPT3_5_TURBO.to_string(),
-            messages: vec![chat_completion::ChatCompletionMessage {
-                role: chat_completion::MessageRole::user,
-                content: String::from(full_line),
-            }],
-        };
-        let result = client.chat_completion(req).await?;
-        println!("{}", result.choices[0].message.content);
+    let handler = CommandHandler::new();
 
+    if start_with_question_word_with_arg(&full_line) {
+        handler.handle_input_with_args(&full_line).await?;
+    }
+    
+    handler.handle(&full_line).await?;
     Ok(())
 
+}
+
+fn start_with_question_word_with_arg(input: &String) -> bool {
+    let question_words = ["how", "what", "why", "when", "is"];
+
+    let re = Regex::new(r"(how|what|why|when|is) (-([a-z])|--(.*)).*").unwrap();
+    if !re.is_match(input){
+        return false;
+    }
+
+
+    for word in question_words.iter() {
+        if input.starts_with(word) {
+            return true;
+        }
+    }
+    return false;
+}
+
+fn trim_question_word(first_word: &String) -> Result<String,Box<dyn std::error::Error>> {
+    let question_words = ["how", "what", "why", "when", "is"];
+    let path_to_executable = split_input(first_word);
+    let command_name = path_to_executable.last().unwrap_or_else(|| panic!("Please provide a command"));
+
+    for word in question_words.iter() {
+        if command_name.starts_with(word) {
+            return Ok(word.to_string());
+        }
+    }
+
+
+    Err("No question word found".into())
+}
+
+#[cfg(target_os = "windows")]
+fn split_input(first_word: &String) -> Vec<&str> {
+    first_word.split("\\").collect()
+}
+
+#[cfg(not(target_os = "windows"))]
+fn split_input(input: &String) -> Vec<&str> {
+    input.split("/").collect()
 }
