@@ -20,6 +20,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>>{
             panic!("Error: {}", e)
         }
     }
+
     for arg in iter {
         full_line.push_str(" ");
         full_line.push_str(arg);
@@ -28,7 +29,11 @@ async fn main() -> Result<(), Box<dyn std::error::Error>>{
     let handler = CommandHandler::new();
 
     if start_with_question_word_with_arg(&full_line) {
-        handler.handle_input_with_args(&full_line).await?;
+        handler.handle_input_with_start_args(&full_line).await?;
+    }
+
+    if end_with_arg(&full_line) {
+        handler.handle_input_with_end_args(&full_line).await?;
     }
     
     handler.handle(&full_line).await?;
@@ -36,6 +41,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>>{
 
 }
 
+// args supported next to question words: -v --version, -h --help
 fn start_with_question_word_with_arg(input: &String) -> bool {
     let question_words = ["how", "what", "why", "when", "is"];
 
@@ -51,6 +57,14 @@ fn start_with_question_word_with_arg(input: &String) -> bool {
         }
     }
     return false;
+}
+
+fn end_with_arg(input: &String) -> bool {
+    let re = Regex::new(r".* (-([a-z])|--(.*)).*").unwrap();
+    if !re.is_match(input){
+        return false;
+    }
+    return true;
 }
 
 fn trim_question_word(first_word: &String) -> Result<String,Box<dyn std::error::Error>> {

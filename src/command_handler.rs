@@ -29,11 +29,21 @@ impl CommandHandler {
         Ok(())
     }
 
-    pub async fn handle_input_with_args(&self,input: &String) -> Result<(), Box<dyn std::error::Error>> {
+    pub async fn handle_input_with_start_args(&self,input: &String) -> Result<(), Box<dyn std::error::Error>> {
         let arg = input.split(" ").collect::<Vec<&str>>()[1];
         match arg {
             "-v" | "--version" => self.print_version(),
             "-h" | "--help" => self.print_help(),
+            _ => panic!("Unknown argument: {}", arg),
+        }
+        Ok(())
+    }
+
+
+    pub async fn handle_input_with_end_args(&self,input: &String) -> Result<(), Box<dyn std::error::Error>> {
+        let inputs = input.split(" ").collect::<Vec<&str>>();
+        let arg = inputs[inputs.len() - 1];
+        match arg {
             "-c" | "--concise" => self.handle_concise(input).await?,
             "-e" | "--explain" => self.handle(input).await?,
             _ => panic!("Unknown argument: {}", arg),
